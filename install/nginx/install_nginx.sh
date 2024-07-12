@@ -15,7 +15,15 @@ declare purple_color="\033[95m"
 declare blue_color="\033[96m"
 declare color_end="\033[0m" 
 
-
+function echo_info() {
+  echo -e "${blue_color}$*${color_end}"
+}
+function echo_suss() {
+  echo -e "${golden_color}$*${color_end}"
+}
+function echo_error() {
+  echo -e "${red_color}$*${color_end}"
+}
 NGINX_VERSIONS=(
   "1.24.0"
   "1.23.3"
@@ -48,10 +56,13 @@ done
 
 
 # 读取用户输入, 不允许超过列表范围
-read -r -p "2. install_dirpath (default: /usr/local/nginx/${NGINX_VERSION}): " INSTALL_DIRPATH
-[[ -z "${INSTALL_DIRPATH}" ]] && INSTALL_DIRPATH="/usr/local/nginx/${NGINX_VERSION}"
+read -r -p "2. install_dirpath (default: /usr/local/nginx_${NGINX_VERSION}): " INSTALL_DIRPATH
+[[ -z "${INSTALL_DIRPATH}" ]] && INSTALL_DIRPATH="/usr/local/nginx_${NGINX_VERSION}"
 mkdir -p "${INSTALL_DIRPATH}"
 
+sleep_time=10
+echo_info "INFO: Wait for ${sleep_time} seconds, installation can be canceled 'ctrl+c' within ${sleep_time} seconds."
+(set -x ;sleep ${sleep_time})
 
 # 安装依赖工具和库
 sudo yum install -y gcc pcre-devel zlib-devel make unzip
