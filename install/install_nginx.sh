@@ -1,0 +1,95 @@
+#!/bin/bash
+
+NGINX_VERSIONS=(
+  "1.24.0"
+  "1.23.3"
+  "1.22.1"
+  "1.21.6"
+  "1.20.2"
+)
+
+# 默认选择的 Nginx 版本
+DEFAULT_VERSION=0
+
+echo "1. case nginx version:"
+for i in "${!NGINX_VERSIONS[@]}"; do
+  echo "$i) ${NGINX_VERSIONS[$i]}"
+done
+
+
+while true ;do
+  # 读取用户输入, 不允许超过列表范围
+  read -p "input (default: ${NGINX_VERSIONS[$DEFAULT_VERSION]}): " VERSION_INDEX
+  if [[ ${VERSION_INDEX} -ge 0 ]] && [[ ${VERSION_INDEX} -lt ${#NGINX_VERSIONS[@]} ]] ;then
+    NGINX_VERSION=${NGINX_VERSIONS[$VERSION_INDEX]}
+    echo "install version: ${NGINX_VERSION}"
+    break
+  else
+    echo "ERROR: 请输入正确的范围"
+  fi
+
+done
+
+
+# 读取用户输入, 不允许超过列表范围
+read -p "2. install_dirpath (default: /usr/local/nginx): " INSTALL_DIRPATH
+mkdir -p ${INSTALL_DIRPATH}
+
+exit
+# 安装依赖工具和库
+sudo yum install -y gcc pcre-devel zlib-devel make unzip
+
+# 创建一个目录用于存放下载的源码
+cd /usr/local/src
+
+# 下载 Nginx 源码包
+wget https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz
+
+# 解压源码包
+tar -zxvf nginx-$NGINX_VERSION.tar.gz
+cd nginx-$NGINX_VERSION
+
+# 配置编译选项
+./configure \
+    --prefix=/usr/local/nginx \
+    --sbin-path=/usr/local/nginx/nginx \
+    --conf-path=/usr/local/nginx/nginx.conf \
+    --pid-path=/usr/local/nginx/nginx.pid \
+    --with-http_ssl_module \
+    --with-http_v2_module \
+    --with-http_realip_module \
+    --with-http_stub_status_module \
+    --with-http_gzip_static_module
+
+# 编译并安装
+make
+sudo make install
+
+# 配置环境变量
+echo 'export PATH=$PATH:/usr/local/nginx/sbin' >> ~/.bash_profile
+source ~/.bash_profile
+
+# 创建 systemd 服务文件
+sudo tee /lib/systemd/system/nginx.service <<EOF
+[Unit]
+Description=The NGINX HTTP and reverse proxy server
+After=network.target
+
+[Service]
+ExecStart=/usr/local/nginx/nginx
+ExecReload=/usr/local/nginx/nginx -s reload
+ExecStop=/usr/local/nginx/nginx -s stop
+PIDFile=/usr/local/nginx/nginx.pid
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 重新加载 systemd 并启动 Nginx 服务
+sudo systemctl daemon-reload
+sudo systemctl start nginx
+sudo systemctl enable nginx
+
+# 验证安装
+nginx -v
