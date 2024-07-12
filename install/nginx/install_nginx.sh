@@ -48,7 +48,8 @@ done
 
 
 # 读取用户输入, 不允许超过列表范围
-read -r -p "2. install_dirpath (default: /usr/local/nginx): " INSTALL_DIRPATH
+read -r -p "2. install_dirpath (default: /usr/local/nginx/${NGINX_VERSION}): " INSTALL_DIRPATH
+[[ -z "${INSTALL_DIRPATH}" ]] && INSTALL_DIRPATH="/usr/local/nginx/${NGINX_VERSION}"
 mkdir -p "${INSTALL_DIRPATH}"
 
 
