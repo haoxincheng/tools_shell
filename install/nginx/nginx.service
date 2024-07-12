@@ -1,0 +1,13 @@
+[Unit]
+Description=The NGINX HTTP and reverse proxy server
+After=network.target
+
+[Service]
+ExecStart=/usr/local/nginx/nginx
+ExecReload=/usr/local/nginx/nginx -s reload
+ExecStop=/usr/local/nginx/nginx -s stop
+PIDFile=/usr/local/nginx/nginx.pid
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

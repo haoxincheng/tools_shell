@@ -43,7 +43,10 @@ sudo yum install -y gcc pcre-devel zlib-devel make unzip
 cd /usr/local/src
 
 # 下载 Nginx 源码包
-wget https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz
+if ! wget https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz ;then
+  echo "ERROR: nginx src package download failed, script exitd!"
+  exit 1
+fi
 
 # 解压源码包
 tar -zxvf nginx-$NGINX_VERSION.tar.gz
@@ -63,33 +66,25 @@ cd nginx-$NGINX_VERSION
 
 # 编译并安装
 make
-sudo make install
+make install
 
 # 配置环境变量
 echo 'export PATH=$PATH:/usr/local/nginx/sbin' >> ~/.bash_profile
 source ~/.bash_profile
 
+service_dir=/lib/systemd/system
+service_name=nginx.service
 # 创建 systemd 服务文件
-sudo tee /lib/systemd/system/nginx.service <<EOF
-[Unit]
-Description=The NGINX HTTP and reverse proxy server
-After=network.target
+if ! [ -f ${service_dir}/${service_name} ] ;then
+  service_name="nginx_$NGINX_VERSION.service"
+fi
 
-[Service]
-ExecStart=/usr/local/nginx/nginx
-ExecReload=/usr/local/nginx/nginx -s reload
-ExecStop=/usr/local/nginx/nginx -s stop
-PIDFile=/usr/local/nginx/nginx.pid
-Restart=always
+cp -a nginx.service ${service_dir}/${service_name}
+  sudo systemctl daemon-reload
+  sudo systemctl start nginx
+  sudo systemctl enable nginx
 
-[Install]
-WantedBy=multi-user.target
-EOF
 
-# 重新加载 systemd 并启动 Nginx 服务
-sudo systemctl daemon-reload
-sudo systemctl start nginx
-sudo systemctl enable nginx
 
 # 验证安装
 nginx -v
