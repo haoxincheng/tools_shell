@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# set -e 
-# set -o pipefail
-# set -u
-# set -x
+# set -e # 状态码非0则退出脚本
+# set -o pipefail # 管道只有在所有命令都成功的情况下才会返回成功状态，需要配合set -e不然不退出只是返回状态
+# set -u # 在运行时遇到未定义的变量则退出脚本
+# set -x # 开启调试模式debug
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 script_current_path=$(cd "$(dirname "$0")" || exit; pwd)
@@ -46,10 +46,10 @@ while true ;do
   read -r -p "input (default: ${NGINX_VERSIONS[$DEFAULT_VERSION]}): " VERSION_INDEX
   if [[ ${VERSION_INDEX} -ge 0 ]] && [[ ${VERSION_INDEX} -lt ${#NGINX_VERSIONS[@]} ]] ;then
     NGINX_VERSION=${NGINX_VERSIONS[$VERSION_INDEX]}
-    echo "install version: ${NGINX_VERSION}"
+    echo_info "install version: ${NGINX_VERSION}"
     break
   else
-    echo "ERROR: 请输入正确的范围"
+    echo_error "Please check your input [ 0 ~ ${#NGINX_VERSIONS[@]} ]."
   fi
 
 done
@@ -72,7 +72,7 @@ cd /usr/local/src || exit 1
 
 # 下载 Nginx 源码包
 if ! wget https://nginx.org/download/nginx-"$NGINX_VERSION".tar.gz ;then
-  echo "ERROR: nginx src package download failed, script exitd!"
+  echo_error "ERROR: nginx src package download failed, script exitd!"
   exit 1
 fi
 
@@ -94,8 +94,7 @@ cd nginx-$NGINX_VERSION || exit 1
 
 # 编译并安装
 make
-make install
-
+if make install
 exit 1
 # 配置环境变量
 echo 'export PATH=$PATH:/usr/local/nginx/sbin' >> ~/.bash_profile
