@@ -1,4 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# set -e 
+# set -o pipefail
+# set -u
+# set -x
+
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+script_current_path=$(cd "$(dirname "$0")" || exit; pwd)
+
+# color
+declare red_color="\033[91m"   
+declare green_color="\033[92m"
+declare golden_color="\033[93m" 
+declare purple_color="\033[95m"
+declare blue_color="\033[96m"
+declare color_end="\033[0m" 
+
 
 NGINX_VERSIONS=(
   "1.24.0"
@@ -19,7 +35,7 @@ done
 
 while true ;do
   # 读取用户输入, 不允许超过列表范围
-  read -p "input (default: ${NGINX_VERSIONS[$DEFAULT_VERSION]}): " VERSION_INDEX
+  read -r -p "input (default: ${NGINX_VERSIONS[$DEFAULT_VERSION]}): " VERSION_INDEX
   if [[ ${VERSION_INDEX} -ge 0 ]] && [[ ${VERSION_INDEX} -lt ${#NGINX_VERSIONS[@]} ]] ;then
     NGINX_VERSION=${NGINX_VERSIONS[$VERSION_INDEX]}
     echo "install version: ${NGINX_VERSION}"
@@ -32,32 +48,32 @@ done
 
 
 # 读取用户输入, 不允许超过列表范围
-read -p "2. install_dirpath (default: /usr/local/nginx): " INSTALL_DIRPATH
-mkdir -p ${INSTALL_DIRPATH}
+read -r -p "2. install_dirpath (default: /usr/local/nginx): " INSTALL_DIRPATH
+mkdir -p "${INSTALL_DIRPATH}"
 
-exit
+
 # 安装依赖工具和库
 sudo yum install -y gcc pcre-devel zlib-devel make unzip
 
 # 创建一个目录用于存放下载的源码
-cd /usr/local/src
+cd /usr/local/src || exit 1
 
 # 下载 Nginx 源码包
-if ! wget https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz ;then
+if ! wget https://nginx.org/download/nginx-"$NGINX_VERSION".tar.gz ;then
   echo "ERROR: nginx src package download failed, script exitd!"
   exit 1
 fi
 
 # 解压源码包
-tar -zxvf nginx-$NGINX_VERSION.tar.gz
-cd nginx-$NGINX_VERSION
+tar -zxvf nginx-"$NGINX_VERSION".tar.gz
+cd nginx-$NGINX_VERSION || exit 1
 
 # 配置编译选项
 ./configure \
-    --prefix=/usr/local/nginx \
-    --sbin-path=/usr/local/nginx/nginx \
-    --conf-path=/usr/local/nginx/nginx.conf \
-    --pid-path=/usr/local/nginx/nginx.pid \
+    --prefix=${INSTALL_DIRPATH} \
+    --sbin-path=${INSTALL_DIRPATH}/sbin \
+    --conf-path=${INSTALL_DIRPATH}/nginx.conf \
+    --pid-path=${INSTALL_DIRPATH}/nginx.pid \
     --with-http_ssl_module \
     --with-http_v2_module \
     --with-http_realip_module \
@@ -68,6 +84,7 @@ cd nginx-$NGINX_VERSION
 make
 make install
 
+exit 1
 # 配置环境变量
 echo 'export PATH=$PATH:/usr/local/nginx/sbin' >> ~/.bash_profile
 source ~/.bash_profile
