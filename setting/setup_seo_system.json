@@ -1,0 +1,8 @@
+{
+    "关闭 firewalld": "disable_firewall",
+    "关闭 selinux": "disable_selinux",
+    "关闭 swap": "disable_swap",
+	"开启firewalld服务": "enable_firewall",
+    "开启cpu_irqbalance": "enable_cpu_irqbalance",
+    "开启 selinux策略": "enable_selinux"
+}

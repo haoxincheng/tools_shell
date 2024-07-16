@@ -11,6 +11,12 @@
 
 在同一网络通信，为了方便运行代码，windows开启共享代码目录
 
+## vscode
+
+打开命令面板：按 Ctrl+Shift+P（或 Cmd+Shift+P 在 macOS 上）打开命令面板。
+搜索并选择：输入 Change End of Line Sequence 并选择这个选项。
+选择行尾格式：在弹出的选项中选择 LF（Linux 格式）或 CRLF（Windows 格式）。
+
 ## Windows开启SMB共享
 
 ![开启共享](images/20240715093236.png)
